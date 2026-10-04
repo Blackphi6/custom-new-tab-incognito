@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Custom New Tab (Incognito)",
+  "version": "1.0",
+  "description": "新しいタブを指定URLに置き換えます。シークレットウィンドウにも対応。",
+  "permissions": ["storage", "tabs"],
+  "incognito": "spanning",
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "action": {
+    "default_title": "新しいタブのURLを設定",
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png" }
+  },
+  "background": { "service_worker": "background.js" },
+  "chrome_url_overrides": { "newtab": "newtab.html" }
+}
