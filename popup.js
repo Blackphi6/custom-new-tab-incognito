@@ -1,9 +1,17 @@
 const input = document.getElementById("url");
 const msg = document.getElementById("msg");
 
-chrome.storage.local.get({ url: "https://g.ai" }, ({ url }) => {
+const focusBox = document.getElementById("focus");
+
+chrome.storage.local.get({ url: "https://g.ai", focus: true }, ({ url, focus }) => {
   input.value = url;
+  focusBox.checked = focus;
   input.select();
+});
+
+// チェックボックスは変更と同時に保存(保存ボタンはURL用)
+focusBox.addEventListener("change", () => {
+  chrome.storage.local.set({ focus: focusBox.checked });
 });
 
 // http/https のみ許可(javascript: 等の実行を防ぐ)
