@@ -11,10 +11,14 @@ async function redirectIfIncognitoNewTab(tab) {
   if (!NEW_TAB_URLS.includes(current)) return;
   handled.add(tab.id);
 
-  const { url, incognitoUrl, focus } = await chrome.storage.local.get({ url: DEFAULT_URL, incognitoUrl: "", focus: true });
+  const { url, incognitoUrl, focus, incognitoFocus } = await chrome.storage.local.get({
+    url: DEFAULT_URL, incognitoUrl: "", focus: true, incognitoFocus: null,
+  });
   const target = incognitoUrl || url || DEFAULT_URL;
+  // シークレット用が未設定なら通常用の設定を引き継ぐ
+  const shouldFocus = incognitoFocus ?? focus;
   try {
-    if (focus) {
+    if (shouldFocus) {
       await chrome.tabs.update(tab.id, { url: target });
     } else {
       // update だとアドレスバーのフォーカスが残るため、別タブで開き直してページにフォーカスを渡す

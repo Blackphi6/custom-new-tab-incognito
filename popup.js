@@ -1,18 +1,27 @@
 const urlInput = document.getElementById("url");
 const incognitoInput = document.getElementById("incognitoUrl");
 const focusBox = document.getElementById("focus");
+const incognitoFocusBox = document.getElementById("incognitoFocus");
 const msg = document.getElementById("msg");
 
-chrome.storage.local.get({ url: "https://g.ai", incognitoUrl: "", focus: true }, ({ url, incognitoUrl, focus }) => {
-  urlInput.value = url;
-  incognitoInput.value = incognitoUrl;
-  focusBox.checked = focus;
-  urlInput.select();
-});
+// incognitoFocus が未設定(旧バージョンからの更新)の間は通常用の設定を引き継ぐ
+chrome.storage.local.get(
+  { url: "https://g.ai", incognitoUrl: "", focus: true, incognitoFocus: null },
+  ({ url, incognitoUrl, focus, incognitoFocus }) => {
+    urlInput.value = url;
+    incognitoInput.value = incognitoUrl;
+    focusBox.checked = focus;
+    incognitoFocusBox.checked = incognitoFocus ?? focus;
+    urlInput.select();
+  }
+);
 
 // チェックボックスは変更と同時に保存(保存ボタンはURL用)
 focusBox.addEventListener("change", () => {
   chrome.storage.local.set({ focus: focusBox.checked });
+});
+incognitoFocusBox.addEventListener("change", () => {
+  chrome.storage.local.set({ incognitoFocus: incognitoFocusBox.checked });
 });
 
 // http/https のみ許可(javascript: 等の実行を防ぐ)
