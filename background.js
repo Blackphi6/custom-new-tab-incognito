@@ -11,13 +11,14 @@ async function redirectIfIncognitoNewTab(tab) {
   if (!NEW_TAB_URLS.includes(current)) return;
   handled.add(tab.id);
 
-  const { url, focus } = await chrome.storage.local.get({ url: DEFAULT_URL, focus: true });
+  const { url, incognitoUrl, focus } = await chrome.storage.local.get({ url: DEFAULT_URL, incognitoUrl: "", focus: true });
+  const target = incognitoUrl || url || DEFAULT_URL;
   try {
     if (focus) {
-      await chrome.tabs.update(tab.id, { url: url || DEFAULT_URL });
+      await chrome.tabs.update(tab.id, { url: target });
     } else {
       // update だとアドレスバーのフォーカスが残るため、別タブで開き直してページにフォーカスを渡す
-      await chrome.tabs.create({ windowId: tab.windowId, index: tab.index, url: url || DEFAULT_URL, active: true });
+      await chrome.tabs.create({ windowId: tab.windowId, index: tab.index, url: target, active: true });
       await chrome.tabs.remove(tab.id);
     }
   } catch (e) {

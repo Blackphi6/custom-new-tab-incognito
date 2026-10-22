@@ -1,12 +1,13 @@
-const input = document.getElementById("url");
+const urlInput = document.getElementById("url");
+const incognitoInput = document.getElementById("incognitoUrl");
+const focusBox = document.getElementById("focus");
 const msg = document.getElementById("msg");
 
-const focusBox = document.getElementById("focus");
-
-chrome.storage.local.get({ url: "https://g.ai", focus: true }, ({ url, focus }) => {
-  input.value = url;
+chrome.storage.local.get({ url: "https://g.ai", incognitoUrl: "", focus: true }, ({ url, incognitoUrl, focus }) => {
+  urlInput.value = url;
+  incognitoInput.value = incognitoUrl;
   focusBox.checked = focus;
-  input.select();
+  urlInput.select();
 });
 
 // チェックボックスは変更と同時に保存(保存ボタンはURL用)
@@ -27,16 +28,26 @@ function normalize(raw) {
 }
 
 function save() {
-  const url = normalize(input.value);
+  const url = normalize(urlInput.value);
   if (!url) {
-    msg.textContent = "http(s) の有効なURLを入力してください";
+    msg.textContent = "新しいタブには http(s) の有効なURLを入力してください";
     return;
   }
-  chrome.storage.local.set({ url }, () => {
-    input.value = url;
+  // シークレット用は空欄なら通常と同じURLを使う
+  const incognitoRaw = incognitoInput.value.trim();
+  const incognitoUrl = incognitoRaw ? normalize(incognitoRaw) : "";
+  if (incognitoUrl === null) {
+    msg.textContent = "シークレット用は http(s) の有効なURLか空欄にしてください";
+    return;
+  }
+  chrome.storage.local.set({ url, incognitoUrl }, () => {
+    urlInput.value = url;
+    incognitoInput.value = incognitoUrl;
     msg.textContent = "保存しました";
   });
 }
 
 document.getElementById("save").addEventListener("click", save);
-input.addEventListener("keydown", (e) => { if (e.key === "Enter") save(); });
+for (const el of [urlInput, incognitoInput]) {
+  el.addEventListener("keydown", (e) => { if (e.key === "Enter") save(); });
+}
