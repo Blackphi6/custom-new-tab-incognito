@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Custom New Tab (Incognito)",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "新しいタブを指定URLに置き換えます。シークレットウィンドウにも対応。",
   "permissions": ["storage", "tabs"],
   "incognito": "spanning",

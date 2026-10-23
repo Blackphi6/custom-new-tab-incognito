@@ -1,14 +1,11 @@
 const DEFAULT_URL = "https://g.ai";
 const NEW_TAB_URLS = ["chrome://newtab/", "chrome://new-tab-page/", "chrome-search://local-ntp/local-ntp.html"];
 
-// onCreated と onUpdated の両方が発火するため、同じタブを二重に処理しない
+// onCreated / onUpdated / newtab.js からの依頼が重なるため、同じタブを二重に処理しない
 const handled = new Set();
 
-// シークレットは chrome_url_overrides が効かないため、タブ側を直接書き換える
-async function redirectIfIncognitoNewTab(tab) {
-  if (!tab.incognito || handled.has(tab.id)) return;
-  const current = tab.pendingUrl || tab.url || "";
-  if (!NEW_TAB_URLS.includes(current)) return;
+async function redirect(tab) {
+  if (handled.has(tab.id)) return;
   handled.add(tab.id);
 
   const { url, incognitoUrl, focus, incognitoFocus } = await chrome.storage.local.get({
@@ -30,8 +27,20 @@ async function redirectIfIncognitoNewTab(tab) {
   }
 }
 
+// シークレットは chrome_url_overrides が効かないことがあるため、タブ側を直接書き換える
+function redirectIfIncognitoNewTab(tab) {
+  if (!tab.incognito) return;
+  const current = tab.pendingUrl || tab.url || "";
+  if (NEW_TAB_URLS.includes(current)) redirect(tab);
+}
+
 chrome.tabs.onCreated.addListener(redirectIfIncognitoNewTab);
 chrome.tabs.onUpdated.addListener((_id, info, tab) => {
   if (info.url || info.status) redirectIfIncognitoNewTab(tab);
 });
 chrome.tabs.onRemoved.addListener((id) => handled.delete(id));
+
+// 新しいシークレットウィンドウの1枚目などで拡張の newtab.html が先に開いた場合の依頼を受ける
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg?.type === "incognito-newtab" && sender.tab?.incognito) redirect(sender.tab);
+});

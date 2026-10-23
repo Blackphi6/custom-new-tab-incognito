@@ -1,5 +1,10 @@
-chrome.storage.local.get({ url: "https://g.ai", focus: true }, ({ url, focus }) => {
-  chrome.tabs.getCurrent((tab) => {
+chrome.tabs.getCurrent((tab) => {
+  // シークレットは設定が別なので background.js に任せる(二重遷移を防ぐ)
+  if (tab?.incognito) {
+    chrome.runtime.sendMessage({ type: "incognito-newtab" });
+    return;
+  }
+  chrome.storage.local.get({ url: "https://g.ai", focus: true }, ({ url, focus }) => {
     if (!tab) {
       location.replace(url);
     } else if (focus) {
